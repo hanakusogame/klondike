@@ -115,16 +115,6 @@
 			"height": 60,
 			"path": "image/floor.png"
 		},
-		"Actor": {
-			"type": "script",
-			"path": "script/Actor.js",
-			"global": true
-		},
-		"Door": {
-			"type": "script",
-			"path": "script/Door.js",
-			"global": true
-		},
 		"door": {
 			"type": "image",
 			"width": 600,

@@ -21,4 +21,3 @@ export class MainGame extends g.E {
 }
 
 //カードクラス
-class Card 
