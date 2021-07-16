@@ -1,0 +1,204 @@
+{
+	"width": 1280,
+	"height": 720,
+	"fps": 30,
+	"main": "./script/_bootstrap.js",
+	"assets": {
+		"_bootstrap": {
+			"type": "script",
+			"path": "script/_bootstrap.js",
+			"global": true
+		},
+		"main": {
+			"type": "script",
+			"path": "script/main.js",
+			"global": true
+		},
+		"parameterObject": {
+			"type": "script",
+			"path": "script/parameterObject.js",
+			"global": true
+		},
+		"MainGame": {
+			"type": "script",
+			"path": "script/MainGame.js",
+			"global": true
+		},
+		"number": {
+			"type": "image",
+			"width": 728,
+			"height": 128,
+			"path": "image/number.png"
+		},
+		"MainScene": {
+			"type": "script",
+			"path": "script/MainScene.js",
+			"global": true
+		},
+		"score": {
+			"type": "image",
+			"width": 192,
+			"height": 192,
+			"path": "image/score.png"
+		},
+		"start": {
+			"type": "image",
+			"width": 800,
+			"height": 500,
+			"path": "image/start.png"
+		},
+		"time": {
+			"type": "image",
+			"width": 76,
+			"height": 76,
+			"path": "image/time.png"
+		},
+		"config": {
+			"type": "image",
+			"width": 40,
+			"height": 40,
+			"path": "image/config.png"
+		},
+		"volume": {
+			"type": "image",
+			"width": 64,
+			"height": 32,
+			"path": "image/volume.png"
+		},
+		"Button": {
+			"type": "script",
+			"path": "script/Button.js",
+			"global": true
+		},
+		"Config": {
+			"type": "script",
+			"path": "script/Config.js",
+			"global": true
+		},
+		"glyph": {
+			"type": "text",
+			"path": "text/glyph.json"
+		},
+		"number_red": {
+			"type": "image",
+			"width": 728,
+			"height": 128,
+			"path": "image/number_red.png"
+		},
+		"bgm": {
+			"type": "audio",
+			"path": "audio/bgm",
+			"systemId": "music",
+			"duration": 38400
+		},
+		"se_start": {
+			"type": "audio",
+			"path": "audio/se_start",
+			"systemId": "sound",
+			"duration": 1701
+		},
+		"se_timeup": {
+			"type": "audio",
+			"path": "audio/se_timeup",
+			"systemId": "sound",
+			"duration": 1080
+		},
+		"title": {
+			"type": "image",
+			"width": 1280,
+			"height": 720,
+			"path": "image/title.png"
+		},
+		"floor": {
+			"type": "image",
+			"width": 1100,
+			"height": 60,
+			"path": "image/floor.png"
+		},
+		"Actor": {
+			"type": "script",
+			"path": "script/Actor.js",
+			"global": true
+		},
+		"Door": {
+			"type": "script",
+			"path": "script/Door.js",
+			"global": true
+		},
+		"door": {
+			"type": "image",
+			"width": 600,
+			"height": 160,
+			"path": "image/door.png"
+		},
+		"door_base": {
+			"type": "image",
+			"width": 600,
+			"height": 160,
+			"path": "image/door_base.png"
+		},
+		"actor": {
+			"type": "image",
+			"width": 1000,
+			"height": 1000,
+			"path": "image/actor.png"
+		},
+		"level": {
+			"type": "image",
+			"width": 50,
+			"height": 50,
+			"path": "image/level.png"
+		},
+		"effect": {
+			"type": "image",
+			"width": 360,
+			"height": 120,
+			"path": "image/effect.png"
+		},
+		"se_clear": {
+			"type": "audio",
+			"path": "audio/se_clear",
+			"systemId": "sound",
+			"duration": 732
+		},
+		"se_miss": {
+			"type": "audio",
+			"path": "audio/se_miss",
+			"systemId": "sound",
+			"duration": 360
+		},
+		"se_move": {
+			"type": "audio",
+			"path": "audio/se_move",
+			"systemId": "sound",
+			"duration": 105
+		},
+		"shadow": {
+			"type": "image",
+			"width": 120,
+			"height": 18,
+			"path": "image/shadow.png"
+		}
+	},
+	"moduleMainScripts": {
+		"@akashic-extension/akashic-timeline": "node_modules/@akashic-extension/akashic-timeline/lib/index.js"
+	},
+	"environment": {
+		"sandbox-runtime": "3",
+		"niconico": {
+			"supportedModes": [
+				"ranking"
+			],
+			"preferredSessionParameters": {
+				"totalTimeLimit": 110
+			}
+		}
+	},
+	"globalScripts": [
+		"node_modules/@akashic-extension/akashic-timeline/lib/ActionType.js",
+		"node_modules/@akashic-extension/akashic-timeline/lib/Easing.js",
+		"node_modules/@akashic-extension/akashic-timeline/lib/Timeline.js",
+		"node_modules/@akashic-extension/akashic-timeline/lib/Tween.js",
+		"node_modules/@akashic-extension/akashic-timeline/lib/index.js"
+	]
+}
