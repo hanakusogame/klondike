@@ -168,6 +168,22 @@
 			"width": 120,
 			"height": 18,
 			"path": "image/shadow.png"
+		},
+		"card": {
+			"type": "image",
+			"path": "image/card.png",
+			"width": 360,
+			"height": 180
+		},
+		"Card": {
+			"type": "script",
+			"path": "script/Card.js",
+			"global": true
+		},
+		"CardArea": {
+			"type": "script",
+			"path": "script/CardArea.js",
+			"global": true
 		}
 	},
 	"moduleMainScripts": {

@@ -23,7 +23,7 @@ export class Button extends g.FilledRect {
 		if (Button.font == null) {
 			Button.font = new g.DynamicFont({
 				game: g.game,
-				fontFamily: g.FontFamily.Monospace,
+				fontFamily: "monospace",
 				size: 32
 			});
 		}

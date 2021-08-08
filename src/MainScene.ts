@@ -27,12 +27,7 @@ export class MainScene extends g.Scene {
 				"config",
 				"volume",
 
-				"door_base",
-				"door",
-				"actor",
-				"level",
-				"effect",
-				"shadow",
+				"card",
 
 				"bgm",
 				"se_start",
@@ -46,7 +41,7 @@ export class MainScene extends g.Scene {
 
 		const timeline = new tl.Timeline(this);
 		const timeLimit = 90; // 制限時間
-		const isDebug = false;
+		const isDebug = true;
 		let time = 0;
 		const version = "ver. 1.13";
 
@@ -71,7 +66,7 @@ export class MainScene extends g.Scene {
 				scene: this,
 				width: g.game.width,
 				height: g.game.height,
-				cssColor: "navy",
+				cssColor: "green",
 				parent: this,
 				opacity: param.isAtsumaru || isDebug ? 1.0 : 0.8,
 			});
@@ -168,8 +163,8 @@ export class MainScene extends g.Scene {
 					src: this.asset.getImageById("score"),
 					width: 192,
 					height: 64,
-					x: 640,
-					y: 10,
+					x: 340,
+					y: 630,
 					parent: this,
 				});
 
@@ -179,8 +174,8 @@ export class MainScene extends g.Scene {
 					text: "0P",
 					font: font,
 					fontSize: 32,
-					x: 750,
-					y: 10,
+					x: 450,
+					y: 630,
 					width: 450,
 					widthAutoAdjust: false,
 					textAlign: "right",
@@ -192,7 +187,7 @@ export class MainScene extends g.Scene {
 					scene: this,
 					src: this.asset.getImageById("time"),
 					x: 5,
-					y: 5,
+					y: 625,
 					parent: this,
 				});
 
@@ -203,7 +198,7 @@ export class MainScene extends g.Scene {
 					font: font,
 					fontSize: 32,
 					x: 105,
-					y: 10,
+					y: 630,
 					parent: this,
 				});
 
