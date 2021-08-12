@@ -2,7 +2,7 @@ import { CardArea } from "./CardArea";
 import { MainGame } from "./MainGame";
 
 //カードクラス
-export class Card extends g.FrameSprite {
+export class Card extends g.E {
 	public mark: number; //記号
 	public num: number; //数字
 	public open: () => void;
@@ -10,10 +10,25 @@ export class Card extends g.FrameSprite {
 	public isRed: () => boolean;
 	public prev: Card;
 	public next: Card;
+	public image: g.E;
+	public isFlame: boolean;
+	public isOpen: boolean;
 
 	constructor(maingame: MainGame, mark: number, num: number, x: number, y: number) {
 		const scene = g.game.scene();
+
 		super({
+			scene: scene,
+			x: x,
+			y: y,
+			width: 120,
+			height: 180,
+			touchable: true,
+		});
+
+		this.isOpen = false;
+		this.isFlame = num === 0;
+		const image = new g.FrameSprite({
 			scene: scene,
 			src: scene.asset.getImageById("card"),
 			x: x,
@@ -21,9 +36,10 @@ export class Card extends g.FrameSprite {
 			width: 120,
 			height: 180,
 			frames: [0, 1, 2],
-			frameNumber: num === 0 ? 2 : 1,
-			touchable: true,
+			frameNumber: this.isFlame ? 2 : 1,
+			parent: this,
 		});
+		this.image = image;
 
 		const marks = ["♡", "♦", "♧", "♠"];
 
@@ -39,7 +55,7 @@ export class Card extends g.FrameSprite {
 			font: font,
 			text: marks[mark] + "" + num,
 			textColor: mark < 2 ? "red" : "black",
-			parent: this,
+			parent: image,
 		});
 
 		label.hide();
@@ -54,16 +70,18 @@ export class Card extends g.FrameSprite {
 
 		//めくる
 		this.open = () => {
-			this.frameNumber = 0;
+			image.frameNumber = 0;
 			label.show();
 			this.modified();
+			this.isOpen = true;
 		};
 
 		//閉じる
 		this.close = () => {
-			this.frameNumber = 1;
+			image.frameNumber = 1;
 			label.hide();
 			this.modified();
+			this.isOpen = false;
 		};
 
 		//グローバル座標での当たり判定
@@ -79,7 +97,7 @@ export class Card extends g.FrameSprite {
 		let isSelect = false;
 		this.onPointDown.add((ev) => {
 			isSelect = false;
-			if (this.frameNumber !== 0) return;
+			if (!this.isOpen) return;
 
 			const select = (): void => {
 				isSelect = true;
@@ -100,6 +118,15 @@ export class Card extends g.FrameSprite {
 				}
 			}
 
+			for (let i = 0; i < maingame.kHitAreas.length; i++) {
+				if (collision(this, maingame.kHitAreas[i])) {
+					cardArea = maingame.kAreas[i];
+					cardArea.getCard(this);
+					select();
+					return;
+				}
+			}
+
 			//手札かどうか
 			if (collision(this, maingame.tHitArea)) {
 				if (this === maingame.tArea.top) {
@@ -114,7 +141,7 @@ export class Card extends g.FrameSprite {
 		//移動
 		this.onPointMove.add((ev) => {
 			if (!isSelect) return;
-			if (this.frameNumber !== 0) return;
+			if (!this.isOpen) return;
 
 			this.x = ev.startDelta.x + gp.x;
 			this.y = ev.startDelta.y + gp.y;
@@ -124,7 +151,7 @@ export class Card extends g.FrameSprite {
 		//重ねる　もしくは　戻す
 		this.onPointUp.add((ev) => {
 			if (!isSelect) return;
-			if (this.frameNumber !== 0) return;
+			if (!this.isOpen) return;
 
 			let dstCardArea = cardArea;
 
@@ -134,8 +161,8 @@ export class Card extends g.FrameSprite {
 					const area = maingame.bAreas[i];
 					//重ねられるかどうかの判定
 					if (
-						(area.top.frameNumber === 0 && this.isRed() !== area.top.isRed() && this.num === area.top.num - 1) ||
-						(area.top.frameNumber === 2 && this.num === 13)
+						(this.isOpen && this.isRed() !== area.top.isRed() && this.num === area.top.num - 1) ||
+						(area.top.isFlame && this.num === 13)
 					) {
 						dstCardArea = area;
 					}
@@ -146,13 +173,13 @@ export class Card extends g.FrameSprite {
 			for (let i = 0; i < maingame.kHitAreas.length; i++) {
 				if (g.Collision.intersectAreas(this, maingame.kHitAreas[i])) {
 					const area = maingame.kAreas[i];
-					if ((area.top.frameNumber === 2 && this.num === 1) || (area.top.mark === this.mark && this.num === area.top.num + 1)) {
+					if ((area.top.isFlame && this.num === 1) || (area.top.mark === this.mark && this.num === area.top.num + 1)) {
 						dstCardArea = area;
 					}
 				}
 			}
 
-			if (cardArea !== dstCardArea && cardArea.top.frameNumber === 1) {
+			if (cardArea !== dstCardArea && !cardArea.top.isOpen && !cardArea.top.isFlame) {
 				cardArea.top.open();
 			}
 

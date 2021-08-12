@@ -1,4 +1,4 @@
-//import tl = require("@akashic-extension/akashic-timeline");
+import tl = require("@akashic-extension/akashic-timeline");
 import { Card } from "./Card";
 
 //カードを置く場所
@@ -21,6 +21,7 @@ export class CardArea extends g.E {
 			height: 180,
 		});
 
+		const timeline = new tl.Timeline(scene);
 		this.top = new Card(null, 0, 0, 0, 0);
 		this.append(this.top);
 		this.base = this.top;
@@ -59,6 +60,12 @@ export class CardArea extends g.E {
 		this.setCard = (card) => {
 			if (!card) return;
 
+			this.parent.append(this);//土台を並べ替え
+
+			let p = this.top.localToGlobal({ x: 0, y: 0 });
+			p = card.localToGlobal({ x: -p.x, y: -p.y });
+
+			this.top.image.append(card);
 			card.prev = this.top;
 			this.top.next = card;
 
@@ -68,10 +75,16 @@ export class CardArea extends g.E {
 				c = c.next;
 			}
 
+			const y = this.top === this.base.next ? 0 : shift;
 			card.x = 0;
-			card.y = this.top === this.base.next ? 0 : shift;
+			card.y = y;
+
+			card.image.x = p.x;
+			card.image.y = p.y;
+
 			card.modified();
-			this.top.prev.append(card);
+
+			timeline.create(card.image).moveTo(0, 0, 500);
 		};
 
 		//すべて開く
