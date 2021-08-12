@@ -23,7 +23,6 @@ export class Card extends g.FrameSprite {
 			frames: [0, 1, 2],
 			frameNumber: num === 0 ? 2 : 1,
 			touchable: true,
-			//opacity: 0.9,
 		});
 
 		const marks = ["♡", "♦", "♧", "♠"];
@@ -67,31 +66,56 @@ export class Card extends g.FrameSprite {
 			this.modified();
 		};
 
+		//グローバル座標での当たり判定
+		const collision = (a: g.E, b: g.E): boolean => {
+			const aa = a.localToGlobal({ x: 0, y: 0 });
+			const bb = b.localToGlobal({ x: 0, y: 0 });
+			return g.Collision.intersect(aa.x, aa.y, a.width, a.height, bb.x, bb.y, b.width, b.height);
+		};
+
 		//選択
 		let gp = { x: 0, y: 0 };
 		let cardArea: CardArea;
+		let isSelect = false;
 		this.onPointDown.add((ev) => {
+			isSelect = false;
 			if (this.frameNumber !== 0) return;
 
-			gp = this.localToGlobal({ x: 0, y: 0 });
-			maingame.hitBase.append(this);
-			this.x = gp.x;
-			this.y = gp.y;
-			this.modified();
+			const select = (): void => {
+				isSelect = true;
+				gp = this.localToGlobal({ x: 0, y: 0 });
+				maingame.hitBase.append(this);
+				this.x = gp.x;
+				this.y = gp.y;
+				this.modified();
+			};
 
 			//自身の列を取得
 			for (let i = 0; i < maingame.bHitAreas.length; i++) {
-				if (g.Collision.intersectAreas(this, maingame.bHitAreas[i])) {
+				if (collision(this, maingame.bHitAreas[i])) {
 					cardArea = maingame.bAreas[i];
 					cardArea.getCard(this);
-					break;
+					select();
+					return;
+				}
+			}
+
+			//手札かどうか
+			if (collision(this, maingame.tHitArea)) {
+				if (this === maingame.tArea.top) {
+					cardArea = maingame.tArea;
+					cardArea.getCard(this);
+					select();
+					return;
 				}
 			}
 		});
 
 		//移動
 		this.onPointMove.add((ev) => {
+			if (!isSelect) return;
 			if (this.frameNumber !== 0) return;
+
 			this.x = ev.startDelta.x + gp.x;
 			this.y = ev.startDelta.y + gp.y;
 			this.modified();
@@ -99,9 +123,12 @@ export class Card extends g.FrameSprite {
 
 		//重ねる　もしくは　戻す
 		this.onPointUp.add((ev) => {
+			if (!isSelect) return;
 			if (this.frameNumber !== 0) return;
 
 			let dstCardArea = cardArea;
+
+			//場札との重なり判定
 			for (let i = 0; i < maingame.bHitAreas.length; i++) {
 				if (g.Collision.intersectAreas(this, maingame.bHitAreas[i])) {
 					const area = maingame.bAreas[i];
@@ -115,11 +142,21 @@ export class Card extends g.FrameSprite {
 				}
 			}
 
+			//組札との重なり判定
+			for (let i = 0; i < maingame.kHitAreas.length; i++) {
+				if (g.Collision.intersectAreas(this, maingame.kHitAreas[i])) {
+					const area = maingame.kAreas[i];
+					if ((area.top.frameNumber === 2 && this.num === 1) || (area.top.mark === this.mark && this.num === area.top.num + 1)) {
+						dstCardArea = area;
+					}
+				}
+			}
+
 			if (cardArea !== dstCardArea && cardArea.top.frameNumber === 1) {
 				cardArea.top.open();
 			}
 
-			dstCardArea.setCard(this, 40);
+			dstCardArea.setCard(this);
 		});
 	}
 }

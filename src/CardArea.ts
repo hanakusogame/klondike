@@ -1,3 +1,4 @@
+//import tl = require("@akashic-extension/akashic-timeline");
 import { Card } from "./Card";
 
 //カードを置く場所
@@ -5,10 +6,12 @@ export class CardArea extends g.E {
 	public base: Card; //末尾のカードではなく置く場所
 	public top: Card; //先頭のカード
 	public getCardNum: (num: number) => Card;
-	public getCard: (card: Card) => void;
-	public setCard: (card: Card, y: number) => void;
+	public getCard: (card: Card) => Card;
+	public setCard: (card: Card) => void;
+	public getBaseCard: () => Card;
+	public getTopCard: () => Card;
 	public openAll: () => void;
-	constructor(x: number, y: number) {
+	constructor(x: number, y: number, shift: number) {
 		const scene = g.game.scene();
 		super({
 			scene: scene,
@@ -36,27 +39,39 @@ export class CardArea extends g.E {
 
 		//カードを取得
 		this.getCard = (card) => {
+			if (!card) return null;
 			card.prev.next = null;
 			this.top = card.prev;
-			//card.prev = null;
+			return card;
+		};
+
+		//一番下のカードを取得
+		this.getBaseCard = (): Card => {
+			return this.getCard(this.base.next);
+		};
+
+		//一番上のカードを取得
+		this.getTopCard = (): Card => {
+			return this.getCard(this.top);
 		};
 
 		//カードを置く
-		this.setCard = (card, y) => {
-			this.top.append(card);
+		this.setCard = (card) => {
+			if (!card) return;
+
 			card.prev = this.top;
 			this.top.next = card;
-			while (card) {
-				card.x = 0;
-				if (this.top.frameNumber === 2) {
-					card.y = 0;
-				} else {
-					card.y = y;
-				}
-				card.modified();
-				this.top = card;
-				card = card.next;
+
+			let c = card;
+			while (c) {
+				this.top = c;
+				c = c.next;
 			}
+
+			card.x = 0;
+			card.y = this.top === this.base.next ? 0 : shift;
+			card.modified();
+			this.top.prev.append(card);
 		};
 
 		//すべて開く

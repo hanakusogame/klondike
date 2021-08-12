@@ -40,7 +40,7 @@ export class MainScene extends g.Scene {
 		});
 
 		const timeline = new tl.Timeline(this);
-		const timeLimit = 90; // 制限時間
+		const timeLimit = 120; // 制限時間
 		const isDebug = true;
 		let time = 0;
 		const version = "ver. 1.13";
