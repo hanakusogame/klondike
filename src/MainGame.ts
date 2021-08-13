@@ -13,11 +13,14 @@ export class MainGame extends g.E {
 	public bAreas: CardArea[];
 	public kAreas: CardArea[];
 	public hitBase: g.E;
+	public level: number;
 
 	constructor() {
 		const scene = g.game.scene() as MainScene;
 		super({ scene: scene, width: g.game.width, height: g.game.height, touchable: true });
 		//const timeline = new tl.Timeline(scene);
+
+		this.level = 2;
 
 		// ベース
 		const base = new g.E({
@@ -40,8 +43,7 @@ export class MainGame extends g.E {
 
 		// カード置き場を作る
 		const createArea: (x: number, y: number, shift: number) => CardArea = (x, y, shift) => {
-			const area = new CardArea(x, y, shift);
-			base.append(area);
+			const area = new CardArea(x, y, shift, base);
 			return area;
 		};
 
@@ -72,7 +74,7 @@ export class MainGame extends g.E {
 		this.bAreas = [];
 		this.bHitAreas = [];
 		for (let x = 0; x < 7; x++) {
-			const a = createArea(20 + x * 140, 30, 40);
+			const a = createArea(20 + x * 140, 10, 50);
 			this.bAreas.push(a);
 			const ha = createHitArea(80 + x * 140, 0, 10, g.game.height);
 			this.bHitAreas.push(ha);
@@ -82,7 +84,7 @@ export class MainGame extends g.E {
 		const yAreas: CardArea[] = [];
 		for (let x = 0; x < 3; x++) {
 			const shift = x === 0 ? 30 : 0;
-			const a = createArea(1000 + x * 140, 80, shift);
+			const a = createArea(1000 + x * 140, 50, shift);
 			yAreas.push(a);
 		}
 		this.tArea = yAreas[0];
@@ -111,7 +113,7 @@ export class MainGame extends g.E {
 		//山札配置
 		while (cards.length > 0) {
 			const num = g.game.random.get(0, cards.length - 1);
-			yAreas[1].setCard(cards[num]);
+			yAreas[1].setCard(cards[num], false);
 			cards.splice(num, 1);
 		}
 
@@ -119,41 +121,39 @@ export class MainGame extends g.E {
 		let cnt = 1;
 		this.bAreas.forEach((area) => {
 			for (let i = 0; i < cnt; i++) {
-				const card = yAreas[1].getCardNum(1);
-				area.setCard(card);
+				const card = yAreas[1].getCard();
+				area.setCard(card, true);
 			}
 			cnt++;
 		});
 
 		//場札の先頭をめくる
 		this.bAreas.forEach((area) => {
-			area.top.open();
+			area.openLast();
 		});
 
 		//山札をめくる
 		const next = (): void => {
 			//手札がある時どかす
-			if (yAreas[0].base.next) {
-				const card = yAreas[0].getBaseCard();
-				yAreas[2].setCard(card);
-			}
+			const cards = yAreas[0].getAll();
+			yAreas[2].setCards(cards, false);
 
 			//山札がないときどかしたカードを山札に戻す
-			if (!yAreas[1].base.next) {
-				while (yAreas[2].base.next) {
-					const card = yAreas[2].getTopCard();
+			if (!yAreas[1].cards.length) {
+				while (yAreas[2].cards.length) {
+					const card = yAreas[2].getCard();
 					card.close();
-					yAreas[1].setCard(card);
+					yAreas[1].setCard(card, false);
 				}
 				return;
 			}
 
 			//山札から手札に移動
-			for (let i = 0; i < 3; i++) {
-				if (!yAreas[1].base.next) return;
-				const card = yAreas[1].getTopCard();
-				yAreas[0].setCard(card);
-				card.open();
+			for (let i = 0; i < this.level; i++) {
+				if (!yAreas[1].cards.length) return;
+				const card = yAreas[1].getCard();
+				yAreas[0].setCard(card, true);
+				card.open(false);
 			}
 		};
 

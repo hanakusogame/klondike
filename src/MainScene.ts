@@ -164,7 +164,7 @@ export class MainScene extends g.Scene {
 					width: 192,
 					height: 64,
 					x: 340,
-					y: 630,
+					y: 640,
 					parent: this,
 				});
 
@@ -174,8 +174,8 @@ export class MainScene extends g.Scene {
 					text: "0P",
 					font: font,
 					fontSize: 32,
-					x: 450,
-					y: 630,
+					x: 380,
+					y: 640,
 					width: 450,
 					widthAutoAdjust: false,
 					textAlign: "right",
@@ -187,7 +187,7 @@ export class MainScene extends g.Scene {
 					scene: this,
 					src: this.asset.getImageById("time"),
 					x: 5,
-					y: 625,
+					y: 635,
 					parent: this,
 				});
 
@@ -198,7 +198,7 @@ export class MainScene extends g.Scene {
 					font: font,
 					fontSize: 32,
 					x: 105,
-					y: 630,
+					y: 640,
 					parent: this,
 				});
 

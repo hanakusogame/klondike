@@ -2,97 +2,85 @@ import tl = require("@akashic-extension/akashic-timeline");
 import { Card } from "./Card";
 
 //カードを置く場所
-export class CardArea extends g.E {
-	public base: Card; //末尾のカードではなく置く場所
-	public top: Card; //先頭のカード
-	public getCardNum: (num: number) => Card;
-	public getCard: (card: Card) => Card;
-	public setCard: (card: Card) => void;
-	public getBaseCard: () => Card;
-	public getTopCard: () => Card;
-	public openAll: () => void;
-	constructor(x: number, y: number, shift: number) {
+export class CardArea extends g.Sprite {
+	public cards: Card[];
+	public setCards: (cards: Card[], isAnime: boolean) => void;
+	public setCard: (cards: Card, isAanime: boolean) => void;
+	public getCard: () => Card;
+	public getCards: (card: Card) => Card[];
+	public getAll: () => Card[];
+	public openLast: () => void;
+	constructor(x: number, y: number, shift: number, base: g.E) {
 		const scene = g.game.scene();
 		super({
 			scene: scene,
+			src: scene.asset.getImageById("card"),
 			x: x,
 			y: y,
+			srcX: 120 * 2,
 			width: 120,
 			height: 180,
+			parent: base,
 		});
 
 		const timeline = new tl.Timeline(scene);
-		this.top = new Card(null, 0, 0, 0, 0);
-		this.append(this.top);
-		this.base = this.top;
 
-		//カードを上から指定枚数取得
-		this.getCardNum = (num) => {
-			let top: Card;
-			while (num > 0) {
-				top = this.top;
-				this.top = top.prev;
-				num--;
+		this.cards = [];
+
+		//複数枚乗せる
+		this.setCards = (cards, isAnime) => {
+			cards.forEach((card, i) => {
+				base.append(card);
+				const x = this.x;
+				const y = this.y + (i + this.cards.length) * shift;
+				if (isAnime) {
+					timeline.create(card).moveTo(x, y, 100);
+				} else {
+					card.x = x;
+					card.y = y;
+				}
+			});
+			this.cards = this.cards.concat(cards);
+		};
+
+		//一枚乗せる
+		this.setCard = (card, isAnime) => {
+			base.append(card);
+			const x = this.x;
+			const y = this.y + this.cards.length * shift;
+			if (isAnime) {
+				timeline.create(card).moveTo(x, y, 100);
+			} else {
+				card.x = x;
+				card.y = y;
 			}
-			this.top.next = null;
-			return top;
+			this.cards.push(card);
 		};
 
-		//カードを取得
-		this.getCard = (card) => {
-			if (!card) return null;
-			card.prev.next = null;
-			this.top = card.prev;
-			return card;
+		//１枚取る
+		this.getCard = (): Card => {
+			return this.cards.pop();
 		};
 
-		//一番下のカードを取得
-		this.getBaseCard = (): Card => {
-			return this.getCard(this.base.next);
+		//引数のカードとその上にあるカードを取得
+		this.getCards = (card): Card[] => {
+			const num = this.cards.indexOf(card);
+			const c = this.cards.slice(num);
+			this.cards = this.cards.slice(0, num);
+			return c;
 		};
 
-		//一番上のカードを取得
-		this.getTopCard = (): Card => {
-			return this.getCard(this.top);
+		//全部取る
+		this.getAll = (): Card[] => {
+			const cs = this.cards;
+			this.cards = [];
+			return cs;
 		};
 
-		//カードを置く
-		this.setCard = (card) => {
-			if (!card) return;
-
-			this.parent.append(this);//土台を並べ替え
-
-			let p = this.top.localToGlobal({ x: 0, y: 0 });
-			p = card.localToGlobal({ x: -p.x, y: -p.y });
-
-			this.top.image.append(card);
-			card.prev = this.top;
-			this.top.next = card;
-
-			let c = card;
-			while (c) {
-				this.top = c;
-				c = c.next;
-			}
-
-			const y = this.top === this.base.next ? 0 : shift;
-			card.x = 0;
-			card.y = y;
-
-			card.image.x = p.x;
-			card.image.y = p.y;
-
-			card.modified();
-
-			timeline.create(card.image).moveTo(0, 0, 500);
-		};
-
-		//すべて開く
-		this.openAll = () => {
-			let card = this.base.next;
-			while (card) {
-				card.open();
-				card = card.next;
+		//一番手前をめくる
+		this.openLast = (): void => {
+			if (this.cards.length) {
+				this.cards.slice(-1)[0].open(true);
 			}
 		};
 	}

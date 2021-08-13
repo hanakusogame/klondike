@@ -1,3 +1,4 @@
+import tl = require("@akashic-extension/akashic-timeline");
 import { CardArea } from "./CardArea";
 import { MainGame } from "./MainGame";
 
@@ -5,13 +6,8 @@ import { MainGame } from "./MainGame";
 export class Card extends g.E {
 	public mark: number; //記号
 	public num: number; //数字
-	public open: () => void;
+	public open: (isAnime: boolean) => void;
 	public close: () => void;
-	public isRed: () => boolean;
-	public prev: Card;
-	public next: Card;
-	public image: g.E;
-	public isFlame: boolean;
 	public isOpen: boolean;
 
 	constructor(maingame: MainGame, mark: number, num: number, x: number, y: number) {
@@ -26,22 +22,26 @@ export class Card extends g.E {
 			touchable: true,
 		});
 
+		const timeline = new tl.Timeline(scene);
 		this.isOpen = false;
-		this.isFlame = num === 0;
-		const image = new g.FrameSprite({
+		this.num = num;
+		this.mark = mark;
+
+		const marks = ["♡", "♦", "♧", "♠"];
+
+		const sprite = new g.FrameSprite({
 			scene: scene,
 			src: scene.asset.getImageById("card"),
-			x: x,
-			y: y,
+			x: 120 / 2,
+			y: 180 / 2,
+			anchorX: 0.5,
+			anchorY: 0.5,
 			width: 120,
 			height: 180,
 			frames: [0, 1, 2],
-			frameNumber: this.isFlame ? 2 : 1,
+			frameNumber: 1,
 			parent: this,
 		});
-		this.image = image;
-
-		const marks = ["♡", "♦", "♧", "♠"];
 
 		const font = new g.DynamicFont({
 			game: g.game,
@@ -55,135 +55,103 @@ export class Card extends g.E {
 			font: font,
 			text: marks[mark] + "" + num,
 			textColor: mark < 2 ? "red" : "black",
-			parent: image,
+			parent: sprite,
 		});
-
 		label.hide();
 
-		this.num = num;
-		this.mark = mark;
-
-		//赤かどうか
-		this.isRed = (): boolean => {
-			return mark < 2;
-		};
-
-		//めくる
-		this.open = () => {
-			image.frameNumber = 0;
+		this.open = (isAnime) => {
+			if (this.isOpen) return;
+			sprite.frameNumber = 0;
 			label.show();
-			this.modified();
 			this.isOpen = true;
+			if (isAnime) {
+				timeline.create(sprite).scaleTo(0, 1, 200).scaleTo(1, 1, 200);
+			}
 		};
 
-		//閉じる
 		this.close = () => {
-			image.frameNumber = 1;
+			sprite.frameNumber = 1;
 			label.hide();
-			this.modified();
 			this.isOpen = false;
 		};
 
-		//グローバル座標での当たり判定
-		const collision = (a: g.E, b: g.E): boolean => {
-			const aa = a.localToGlobal({ x: 0, y: 0 });
-			const bb = b.localToGlobal({ x: 0, y: 0 });
-			return g.Collision.intersect(aa.x, aa.y, a.width, a.height, bb.x, bb.y, b.width, b.height);
-		};
-
-		//選択
-		let gp = { x: 0, y: 0 };
-		let cardArea: CardArea;
-		let isSelect = false;
+		//カードをつかむ
+		let bkCards: Card[] = null;
+		let bkArea: CardArea = null;
 		this.onPointDown.add((ev) => {
-			isSelect = false;
-			if (!this.isOpen) return;
-
-			const select = (): void => {
-				isSelect = true;
-				gp = this.localToGlobal({ x: 0, y: 0 });
-				maingame.hitBase.append(this);
-				this.x = gp.x;
-				this.y = gp.y;
-				this.modified();
-			};
-
-			//自身の列を取得
-			for (let i = 0; i < maingame.bHitAreas.length; i++) {
-				if (collision(this, maingame.bHitAreas[i])) {
-					cardArea = maingame.bAreas[i];
-					cardArea.getCard(this);
-					select();
-					return;
+			bkCards = null;
+			//場札
+			maingame.bHitAreas.forEach((a, i) => {
+				if (g.Collision.intersectAreas(this, a)) {
+					bkArea = maingame.bAreas[i];
+					bkCards = bkArea.getCards(this);
 				}
+			});
+
+			//組札
+			maingame.kHitAreas.forEach((a, i) => {
+				if (g.Collision.intersectAreas(this, a)) {
+					bkArea = maingame.kAreas[i];
+					bkCards = bkArea.getCards(this);
+				}
+			});
+
+			//手札
+			if (g.Collision.intersectAreas(this, maingame.tHitArea)) {
+				bkArea = maingame.tArea;
+				bkCards = [bkArea.getCard()];
 			}
 
-			for (let i = 0; i < maingame.kHitAreas.length; i++) {
-				if (collision(this, maingame.kHitAreas[i])) {
-					cardArea = maingame.kAreas[i];
-					cardArea.getCard(this);
-					select();
-					return;
-				}
-			}
+			if (!bkCards) return;
 
-			//手札かどうか
-			if (collision(this, maingame.tHitArea)) {
-				if (this === maingame.tArea.top) {
-					cardArea = maingame.tArea;
-					cardArea.getCard(this);
-					select();
-					return;
-				}
-			}
+			bkCards.forEach((c) => {
+				c.parent.append(c); //最前面へ
+			});
 		});
 
-		//移動
+		//カードを移動する
 		this.onPointMove.add((ev) => {
-			if (!isSelect) return;
-			if (!this.isOpen) return;
-
-			this.x = ev.startDelta.x + gp.x;
-			this.y = ev.startDelta.y + gp.y;
-			this.modified();
+			if (!bkCards) return;
+			bkCards.forEach((c) => {
+				c.x += ev.prevDelta.x;
+				c.y += ev.prevDelta.y;
+				c.modified();
+			});
 		});
 
-		//重ねる　もしくは　戻す
+		//カードを重ねる
 		this.onPointUp.add((ev) => {
-			if (!isSelect) return;
-			if (!this.isOpen) return;
+			if (!bkCards) return;
+			let area = bkArea;
 
-			let dstCardArea = cardArea;
-
-			//場札との重なり判定
-			for (let i = 0; i < maingame.bHitAreas.length; i++) {
-				if (g.Collision.intersectAreas(this, maingame.bHitAreas[i])) {
-					const area = maingame.bAreas[i];
-					//重ねられるかどうかの判定
+			//場札
+			maingame.bHitAreas.forEach((a, i) => {
+				if (g.Collision.intersectAreas(this, a)) {
+					const a = maingame.bAreas[i];
 					if (
-						(this.isOpen && this.isRed() !== area.top.isRed() && this.num === area.top.num - 1) ||
-						(area.top.isFlame && this.num === 13)
+						(!a.cards.length && this.num === 13) ||
+						(a.cards.length && a.cards.slice(-1)[0].num === this.num + 1 && a.cards.slice(-1)[0].mark !== this.mark)
 					) {
-						dstCardArea = area;
+						area = a;
 					}
 				}
-			}
+			});
 
-			//組札との重なり判定
-			for (let i = 0; i < maingame.kHitAreas.length; i++) {
-				if (g.Collision.intersectAreas(this, maingame.kHitAreas[i])) {
-					const area = maingame.kAreas[i];
-					if ((area.top.isFlame && this.num === 1) || (area.top.mark === this.mark && this.num === area.top.num + 1)) {
-						dstCardArea = area;
+			//組札
+			maingame.kHitAreas.forEach((a, i) => {
+				if (g.Collision.intersectAreas(this, a)) {
+					const a = maingame.kAreas[i];
+					if (
+						(!a.cards.length && this.num === 1) ||
+						(a.cards.length && a.cards.slice(-1)[0].num === this.num - 1 && a.cards.slice(-1)[0].mark === this.mark)
+					) {
+						area = a;
 					}
 				}
-			}
+			});
 
-			if (cardArea !== dstCardArea && !cardArea.top.isOpen && !cardArea.top.isFlame) {
-				cardArea.top.open();
-			}
-
-			dstCardArea.setCard(this);
+			area.setCards(bkCards, true);
+			if (area !== bkArea) bkArea.openLast();
 		});
 	}
 }
