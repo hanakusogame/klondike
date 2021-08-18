@@ -6,10 +6,12 @@ import { GameMainParameterObject, RPGAtsumaruWindow } from "./parameterObject";
 declare const window: RPGAtsumaruWindow;
 
 export class MainScene extends g.Scene {
-	public addScore: (score: number) => void;
+	public addScore: (score: number, x: number) => void;
 	public playSound: (name: string) => void;
 	public isStart = false;
 	public font: g.Font;
+	public level: number;
+	public time: number;
 
 	constructor(param: GameMainParameterObject) {
 		super({
@@ -20,7 +22,6 @@ export class MainScene extends g.Scene {
 				"score",
 				"time",
 				"start",
-				"floor",
 				"glyph",
 				"number",
 				"number_red",
@@ -28,6 +29,11 @@ export class MainScene extends g.Scene {
 				"volume",
 
 				"card",
+				"mark",
+				"mark2",
+				"mark3",
+				"number2",
+				"cursor",
 
 				"bgm",
 				"se_start",
@@ -40,10 +46,10 @@ export class MainScene extends g.Scene {
 		});
 
 		const timeline = new tl.Timeline(this);
-		const timeLimit = 120; // 制限時間
-		const isDebug = true;
-		let time = 0;
-		const version = "ver. 1.13";
+		const timeLimit = 180; // 制限時間
+		const isDebug = false;
+		const version = "ver. 1.00";
+		this.level = 1;
 
 		// ミニゲームチャット用モードの取得と乱数シード設定
 		let mode = "";
@@ -94,6 +100,33 @@ export class MainScene extends g.Scene {
 				font: font,
 				fontSize: 24,
 				text: version,
+				parent: sprTitle,
+			});
+
+			//レベル変更
+			for (let i = 0; i < 3; i++) {
+				const area = new g.FilledRect({
+					scene: this,
+					x: 576 + 208 * i,
+					y: 560,
+					width: 190,
+					height: 112,
+					cssColor: "yellow",
+					opacity: 0.0,
+					parent: sprTitle,
+					touchable: true,
+				});
+				area.onPointDown.add(() => {
+					cursor.x = area.x;
+					this.level = i + 1;
+				});
+			}
+
+			const cursor = new g.Sprite({
+				scene: this,
+				src: this.asset.getImageById("cursor"),
+				x: 576,
+				y: 555,
 				parent: sprTitle,
 			});
 
@@ -259,7 +292,7 @@ export class MainScene extends g.Scene {
 				};
 
 				const updateHandler = (): void => {
-					if (time < 0) {
+					if (this.time < 0) {
 						// RPGアツマール環境であればランキングを設定
 						this.setTimeout(() => {
 							if (param.isAtsumaru) {
@@ -293,19 +326,19 @@ export class MainScene extends g.Scene {
 						sprFG.modified();
 					}
 					// カウントダウン処理
-					time -= 1 / g.game.fps;
-					timeLabel.text = "" + Math.ceil(time);
+					this.time -= 1 / g.game.fps;
+					timeLabel.text = "" + Math.ceil(this.time);
 					timeLabel.invalidate();
 
 					//ラスト5秒の点滅
-					if (time <= 5) {
-						sprFG.opacity = (time - Math.floor(time)) / 3;
+					if (this.time <= 5) {
+						sprFG.opacity = (this.time - Math.floor(this.time)) / 3;
 						sprFG.modified();
 					}
 				};
 
 				// スコア追加
-				this.addScore = (score) => {
+				this.addScore = (score, x) => {
 					// if (time < 0) return;
 					g.game.vars.gameState.score += score;
 					timeline.create(this).every((e: number, p: number) => {
@@ -319,8 +352,8 @@ export class MainScene extends g.Scene {
 						text: "+" + score,
 						font: fontRed,
 						fontSize: 32,
-						x: 750,
-						y: 60,
+						x: x,
+						y: 580,
 						width: 410,
 						widthAutoAdjust: false,
 						textAlign: "right",
@@ -344,8 +377,8 @@ export class MainScene extends g.Scene {
 					maingame?.destroy();
 					maingame = new MainGame();
 					base.append(maingame);
-					time = timeLimit;
-					timeLabel.text = "" + time;
+					this.time = timeLimit;
+					timeLabel.text = "" + this.time;
 					timeLabel.invalidate();
 
 					g.game.vars.gameState.score = 0;

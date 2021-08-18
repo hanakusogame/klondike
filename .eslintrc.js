@@ -130,7 +130,7 @@ module.exports = {
 		"max-len": [
 			"error",
 			{
-				code: 140,
+				code: 144,
 			},
 		],
 		"no-bitwise": "off",
