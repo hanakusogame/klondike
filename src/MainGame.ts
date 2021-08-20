@@ -19,7 +19,7 @@ export class MainGame extends g.E {
 	constructor() {
 		const scene = g.game.scene() as MainScene;
 		super({ scene: scene, width: g.game.width, height: g.game.height, touchable: true });
-		//const timeline = new tl.Timeline(scene);
+		// const timeline = new tl.Timeline(scene);
 
 		// ベース
 		const base = new g.E({
@@ -63,7 +63,7 @@ export class MainGame extends g.E {
 		};
 
 		// 山札用の当たり判定を作成
-		this.yHitArea = createHitArea(1120, 60, 160, 220);
+		this.yHitArea = createHitArea(1130, 40, 140, 200);
 		this.yHitArea.touchable = true;
 
 		//手札用の当たり判定を作成
@@ -79,7 +79,7 @@ export class MainGame extends g.E {
 			this.bHitAreas.push(ha);
 		}
 
-		//山札・手札・手札リサイクル用置き場
+		//山札・手札置き場
 		const yAreas: CardArea[] = [];
 		for (let x = 0; x < 2; x++) {
 			const a = createArea(1000 + x * 140, 50, 1 - x);
@@ -133,6 +133,7 @@ export class MainGame extends g.E {
 
 		//山札をめくる
 		const next = (): void => {
+			if (!scene.isStart) return;
 			if (yAreas[0].cards.length) {
 				if (yAreas[0].cards.slice(-1)[0].x !== yAreas[0].x) {
 					return;

@@ -60,7 +60,6 @@ export class CardArea extends g.Sprite {
 			let shiftNum = Math.min(50, 520 / (this.cards.length + num));
 
 			cards.forEach((card, i) => {
-				card.isMove = true;
 				const x = this.x;
 				let y = this.y;
 				if (this.type === 2) y += (i + this.cards.length) * shiftNum;
@@ -70,11 +69,12 @@ export class CardArea extends g.Sprite {
 						.create(card)
 						.wait(wait)
 						.call(() => {
+							Card.cntAnimeCards++;
 							base.append(card);
 						})
 						.moveTo(x, y, 200)
 						.call(() => {
-							card.isMove = false;
+							Card.cntAnimeCards--;
 						});
 				} else {
 					base.append(card);

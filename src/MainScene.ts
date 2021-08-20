@@ -48,7 +48,7 @@ export class MainScene extends g.Scene {
 		const timeline = new tl.Timeline(this);
 		const timeLimit = 180; // 制限時間
 		const isDebug = false;
-		const version = "ver. 1.02";
+		const version = "ver. 1.03";
 		this.level = 1;
 
 		// ミニゲームチャット用モードの取得と乱数シード設定

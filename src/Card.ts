@@ -5,6 +5,7 @@ import { MainScene } from "./MainScene";
 
 //カードクラス
 export class Card extends g.E {
+	public static cntAnimeCards: number = 0;
 	private static doubleCard: Card; //ダブルクリック判定用
 	private static tapCard: Card = null;
 	public mark: number; //記号
@@ -14,7 +15,6 @@ export class Card extends g.E {
 	public isOpen: boolean;
 	public isBfuda: boolean;
 	public isKfuda: boolean;
-	public isMove: boolean;
 
 	constructor(maingame: MainGame, mark: number, num: number, x: number, y: number) {
 		const scene = g.game.scene() as MainScene;
@@ -34,7 +34,6 @@ export class Card extends g.E {
 		this.mark = mark;
 		this.isBfuda = false;
 		this.isKfuda = false;
-		this.isMove = false;
 
 		const sprite = new g.FrameSprite({
 			scene: scene,
@@ -136,10 +135,11 @@ export class Card extends g.E {
 				maingame.autoMoves();
 				bkCards = null;
 				Card.doubleCard = null;
+				maingame.clear();
 				return;
 			}
 
-			if (this.isMove) return;
+			if (Card.cntAnimeCards) return;
 
 			//場札
 			maingame.bHitAreas.forEach((a, i) => {
@@ -181,7 +181,7 @@ export class Card extends g.E {
 		this.onPointMove.add((ev) => {
 			if (Card.tapCard !== this) return;
 			if (!scene.isStart) return;
-			if (this.isMove) return;
+			if (Card.cntAnimeCards) return;
 			if (!bkCards) return;
 			bkCards.forEach((c) => {
 				c.x += ev.prevDelta.x;
@@ -195,7 +195,7 @@ export class Card extends g.E {
 			if (Card.tapCard !== this) return;
 			Card.tapCard = null;
 			if (!scene.isStart) return;
-			if (this.isMove) return;
+			if (Card.cntAnimeCards) return;
 			if (!bkCards) return;
 			let area = bkArea;
 
@@ -206,12 +206,18 @@ export class Card extends g.E {
 			//場札
 			maingame.bHitAreas.forEach((a, i) => {
 				if (g.Collision.intersectAreas(bkCards[0], a)) {
-					const a = maingame.bAreas[i];
-					if (
-						(!a.cards.length && bkCards[0].num === 13) ||
-						(a.cards.length && a.cards.slice(-1)[0].num === bkCards[0].num + 1 && isRed(a.cards.slice(-1)[0]) !== isRed(bkCards[0]))
-					) {
-						area = a;
+					const arr = [0, -1, 1];
+					for (let j = 0; j < arr.length; j++) {
+						const num = i + arr[j];
+						if (num < 0 || num >= maingame.bAreas.length) continue;
+						const a = maingame.bAreas[num];
+						if (
+							(!a.cards.length && bkCards[0].num === 13) ||
+							(a.cards.length && a.cards.slice(-1)[0].num === bkCards[0].num + 1 && isRed(a.cards.slice(-1)[0]) !== isRed(bkCards[0]))
+						) {
+							area = a;
+							break;
+						}
 					}
 				}
 			});
@@ -219,12 +225,18 @@ export class Card extends g.E {
 			//組札
 			maingame.kHitAreas.forEach((a, i) => {
 				if (g.Collision.intersectAreas(bkCards[0], a)) {
-					const a = maingame.kAreas[i];
-					if (
-						(!a.cards.length && bkCards[0].num === 1) ||
-						(a.cards.length && a.cards.slice(-1)[0].num === bkCards[0].num - 1 && a.cards.slice(-1)[0].mark === bkCards[0].mark)
-					) {
+					let a = maingame.kAreas[i];
+					if (!a.cards.length && bkCards[0].num === 1) {
 						area = a;
+						return;
+					}
+
+					for (let j = 0; j < maingame.kAreas.length; j++){
+						a = maingame.kAreas[j];
+						if (a.cards.length && a.cards.slice(-1)[0].num === bkCards[0].num - 1 && a.cards.slice(-1)[0].mark === bkCards[0].mark) {
+							area = a;
+							break;
+						}
 					}
 				}
 			});
@@ -245,14 +257,14 @@ export class Card extends g.E {
 			} else {
 				//戻す
 				bkCards.forEach((c) => {
-					c.isMove = true;
+					Card.cntAnimeCards++;
 					const x = c.x - (bkCards[0].x - bkP.x);
 					const y = c.y - (bkCards[0].y - bkP.y);
 					timeline
 						.create(c)
 						.moveTo(x, y, 200)
 						.call(() => {
-							c.isMove = false;
+							Card.cntAnimeCards--;
 						});
 				});
 				scene.playSound("se_miss");
