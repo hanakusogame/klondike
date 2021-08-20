@@ -168,7 +168,8 @@ export class MainGame extends g.E {
 			let cnt = 0;
 			while (true) {
 				let flg = false;
-				this.bAreas.forEach((ba) => {
+				const areas = this.bAreas.concat(yAreas[0]);
+				areas.forEach((ba) => {
 					if (!ba.cards.length) return;
 					const bc = ba.cards.slice(-1)[0];
 					if (!bc.isOpen) return;

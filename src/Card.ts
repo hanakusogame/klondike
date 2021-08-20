@@ -6,6 +6,7 @@ import { MainScene } from "./MainScene";
 //カードクラス
 export class Card extends g.E {
 	private static doubleCard: Card; //ダブルクリック判定用
+	private static tapCard: Card = null;
 	public mark: number; //記号
 	public num: number; //数字
 	public open: (isAnime: boolean) => void;
@@ -122,6 +123,9 @@ export class Card extends g.E {
 		let bkArea: CardArea = null;
 		let bkP = { x: 0, y: 0 };
 		this.onPointDown.add((ev) => {
+			if (Card.tapCard) return;
+			Card.tapCard = this;
+
 			bkCards = null;
 
 			if (!scene.isStart) return;
@@ -175,6 +179,7 @@ export class Card extends g.E {
 
 		//カードを移動する
 		this.onPointMove.add((ev) => {
+			if (Card.tapCard !== this) return;
 			if (!scene.isStart) return;
 			if (this.isMove) return;
 			if (!bkCards) return;
@@ -187,6 +192,8 @@ export class Card extends g.E {
 
 		//カードを重ねる
 		this.onPointUp.add((ev) => {
+			if (Card.tapCard !== this) return;
+			Card.tapCard = null;
 			if (!scene.isStart) return;
 			if (this.isMove) return;
 			if (!bkCards) return;
