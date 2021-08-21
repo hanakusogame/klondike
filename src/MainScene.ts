@@ -8,6 +8,7 @@ declare const window: RPGAtsumaruWindow;
 export class MainScene extends g.Scene {
 	public addScore: (score: number, x: number) => void;
 	public playSound: (name: string) => void;
+	public reset: () => void;
 	public isStart = false;
 	public font: g.Font;
 	public level: number;
@@ -48,7 +49,7 @@ export class MainScene extends g.Scene {
 		const timeline = new tl.Timeline(this);
 		const timeLimit = 180; // 制限時間
 		const isDebug = false;
-		const version = "ver. 1.04";
+		const version = "ver. 1.05";
 		this.level = 1;
 
 		// ミニゲームチャット用モードの取得と乱数シード設定
@@ -141,35 +142,13 @@ export class MainScene extends g.Scene {
 				});
 
 			//コンフィグ画面
-			const config = new Config(this, 780, 80);
-			this.append(config);
+			const config = new Config(this, 770, 10);
 			config.bg = bg;
 			config.hide();
 
 			config.bgmEvent = (num) => {
 				bgm.changeVolume(0.6 * num);
 			};
-
-			if (param.isAtsumaru || isDebug || mode === "game") {
-				//コンフィグ表示ボタン
-				const btnConfig = new g.Sprite({
-					scene: this,
-					src: this.asset.getImageById("config"),
-					x: 1200,
-					scaleX: 2,
-					scaleY: 2.0,
-					touchable: true,
-					parent: this,
-				});
-
-				btnConfig.onPointDown.add(() => {
-					if (config.state & 1) {
-						config.show();
-					} else {
-						config.hide();
-					}
-				});
-			}
 
 			const init = (): void => {
 				// 上で生成した font.png と font_glyphs.json に対応するアセットを取得
@@ -258,22 +237,53 @@ export class MainScene extends g.Scene {
 					parent: this,
 				});
 
+				if (param.isAtsumaru || isDebug || mode === "game") {
+					//コンフィグ表示ボタン
+					const btnConfig = new g.Sprite({
+						scene: this,
+						src: this.asset.getImageById("config"),
+						x: 1200,
+						touchable: true,
+						parent: this,
+					});
+
+					btnConfig.onPointDown.add(() => {
+						if (config.state & 1) {
+							config.show();
+						} else {
+							config.hide();
+						}
+					});
+				}
+
 				let btnReset: Button;
 				let btnRanking: Button;
+				let btnExtend: Button;
 
 				if (param.isAtsumaru || isDebug || mode === "game") {
+					// 継続ボタン
+					btnExtend = new Button(this, ["継続"], 1000, 280, 260);
+					btnExtend.modified();
+					this.append(btnExtend);
+					btnExtend.pushEvent = () => {
+						this.isStart = true;
+						stateSpr.hide();
+						sprFG.opacity = 0;
+						btnReset?.hide();
+						btnRanking?.hide();
+						btnExtend?.hide();
+					};
+
 					// リセットボタン
-					btnReset = new Button(this, ["リセット"], 1000, 520, 130);
-					btnReset.scale(2.0);
+					btnReset = new Button(this, ["リセット"], 1000, 520, 260);
 					btnReset.modified();
 					this.append(btnReset);
 					btnReset.pushEvent = () => {
-						reset();
+						this.reset();
 					};
 
 					// ランキングボタン
-					btnRanking = new Button(this, ["ランキング"], 1000, 400, 130);
-					btnRanking.scale(2.0);
+					btnRanking = new Button(this, ["ランキング"], 1000, 400, 260);
 					btnRanking.modified();
 
 					this.append(btnRanking);
@@ -286,6 +296,8 @@ export class MainScene extends g.Scene {
 					};
 				}
 
+				this.append(config);
+
 				//効果音再生
 				this.playSound = (name: string) => {
 					(this.assets[name] as g.AudioAsset).play().changeVolume(config.volumes[1]);
@@ -295,12 +307,14 @@ export class MainScene extends g.Scene {
 					if (this.time < 0) {
 						// RPGアツマール環境であればランキングを設定
 						this.setTimeout(() => {
+							const scoreboadsNums = [1, 3, 2];
 							if (param.isAtsumaru) {
-								const boardId = 2;
+								const boardId = scoreboadsNums[this.level];
 								const board = window.RPGAtsumaru.scoreboards;
 								board.setRecord(boardId, g.game.vars.gameState.score).then(() => {
 									btnReset?.show();
 									btnRanking?.show();
+									btnExtend?.show();
 								});
 							}
 
@@ -308,6 +322,12 @@ export class MainScene extends g.Scene {
 							if (mode === "game") {
 								(window as Window).parent.postMessage({ score: g.game.vars.gameState.score, id: 1 }, "*");
 								btnReset.show();
+							}
+
+							if (isDebug) {
+								btnReset?.show();
+								btnRanking?.show();
+								btnExtend?.show();
 							}
 						}, 500);
 
@@ -373,7 +393,8 @@ export class MainScene extends g.Scene {
 				};
 
 				//リセット処理
-				const reset = (): void => {
+				this.reset = (): void => {
+					this.isStart = true;
 					maingame?.destroy();
 					maingame = new MainGame();
 					base.append(maingame);
@@ -392,20 +413,20 @@ export class MainScene extends g.Scene {
 						stateSpr.hide();
 					}, 1000);
 
+					btnExtend?.hide();
 					btnReset?.hide();
 					btnRanking?.hide();
 
 					this.playSound("se_start");
 
-					this.isStart = true;
-
 					sprFG.opacity = 0;
 					sprFG.cssColor = "red";
 					sprFG.modified();
 
+					this.onUpdate.remove(updateHandler);
 					this.onUpdate.add(updateHandler);
 				};
-				reset();
+				this.reset();
 			};
 		});
 	}

@@ -55,14 +55,14 @@
 		},
 		"config": {
 			"type": "image",
-			"width": 40,
-			"height": 40,
+			"width": 80,
+			"height": 80,
 			"path": "image/config.png"
 		},
 		"volume": {
 			"type": "image",
-			"width": 64,
-			"height": 32,
+			"width": 128,
+			"height": 64,
 			"path": "image/volume.png"
 		},
 		"Button": {
