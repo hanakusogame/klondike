@@ -223,23 +223,25 @@ export class Card extends g.E {
 			});
 
 			//組札
-			maingame.kHitAreas.forEach((a, i) => {
-				if (g.Collision.intersectAreas(bkCards[0], a)) {
-					let a = maingame.kAreas[i];
-					if (!a.cards.length && bkCards[0].num === 1) {
-						area = a;
-						return;
-					}
-
-					for (let j = 0; j < maingame.kAreas.length; j++){
-						a = maingame.kAreas[j];
-						if (a.cards.length && a.cards.slice(-1)[0].num === bkCards[0].num - 1 && a.cards.slice(-1)[0].mark === bkCards[0].mark) {
+			if (bkCards.length === 1) {
+				maingame.kHitAreas.forEach((a, i) => {
+					if (g.Collision.intersectAreas(bkCards[0], a)) {
+						let a = maingame.kAreas[i];
+						if (!a.cards.length && bkCards[0].num === 1) {
 							area = a;
-							break;
+							return;
+						}
+
+						for (let j = 0; j < maingame.kAreas.length; j++) {
+							a = maingame.kAreas[j];
+							if (a.cards.length && a.cards.slice(-1)[0].num === bkCards[0].num - 1 && a.cards.slice(-1)[0].mark === bkCards[0].mark) {
+								area = a;
+								break;
+							}
 						}
 					}
-				}
-			});
+				});
+			}
 
 			if (area !== bkArea) {
 				if (bkArea.type === 2) {
