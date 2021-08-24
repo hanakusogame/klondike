@@ -292,7 +292,8 @@ export class MainScene extends g.Scene {
 						//window.RPGAtsumaru.scoreboards.setRecord(1, g.game.vars.gameState.score).then(() => {
 						//window.RPGAtsumaru.scoreboards.display(1);
 						//});
-						window.RPGAtsumaru.scoreboards.display(2);
+						const scoreboadsNums = [0, 3, 1, 2];
+						window.RPGAtsumaru.scoreboards.display(scoreboadsNums[this.level]);
 					};
 				}
 
@@ -307,7 +308,7 @@ export class MainScene extends g.Scene {
 					if (this.time < 0) {
 						// RPGアツマール環境であればランキングを設定
 						this.setTimeout(() => {
-							const scoreboadsNums = [1, 3, 2];
+							const scoreboadsNums = [0, 3, 1, 2];
 							if (param.isAtsumaru) {
 								const boardId = scoreboadsNums[this.level];
 								const board = window.RPGAtsumaru.scoreboards;

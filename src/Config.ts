@@ -170,7 +170,7 @@ export class Config extends g.FilledRect {
 			parent: this,
 		});
 
-		const scoreboadsNums = [1, 3, 2];
+		const scoreboadsNums = [3, 1, 2];
 		for (let i = 0; i < 3; i++) {
 			const btnRank = new Button(scene, [i + 1 + "枚"], 4, 456 + 80 * i, 260, 70);
 			base.append(btnRank);
